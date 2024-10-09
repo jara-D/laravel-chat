@@ -32,6 +32,12 @@ class  User extends Authenticatable
         'remember_token',
     ];
 
+    public function canAccesChat($room)
+    {
+        return true;
+    }
+
+
     /**
      * Get the attributes that should be cast.
      *

@@ -7,9 +7,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
 
-//Route::get('/dashboard', function () {
-//    return view('dashboard');
-//})->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -22,10 +19,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/chat/{chat}', [ChatController::class, 'show'])->name('chat.show');
     Route::post('/chat/{chat}', [ChatController::class, 'create'])->name('chat.create');
 });
-
-
-
-
 
 
 require __DIR__.'/auth.php';

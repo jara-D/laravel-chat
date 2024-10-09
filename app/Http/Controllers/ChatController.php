@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\messageSent;
 use App\Models\Chat;
 use App\Models\Message;
+use App\Models\User;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Foundation\Application;
@@ -37,13 +39,13 @@ class ChatController extends Controller
                 'latest_messages.chat_id',
                 'chats.id'
             )
+            ->latest('latest_messages.created_at')
             ->get([
                 'chats.id',
                 DB::raw('IF(chats.user_id = ' . auth()->id() . ', user2.name, user1.name) as name'),
                 'latest_messages.message',
                 'latest_messages.created_at'
             ]);
-
 
 
         return view('chat.index', ['chats' => $chats]);
@@ -57,8 +59,8 @@ class ChatController extends Controller
         $msg = $request->post('message');
         $chat_id = $chat->getAttribute('id');
 
-        Message::query()
-            ->insert([
+        $message_id = Message::query()
+            ->insertGetId([
                 'chat_id' => $chat_id,
                 'sender_id' => auth()->id(),
                 'message' => $msg,
@@ -66,8 +68,16 @@ class ChatController extends Controller
                 'updated_at' => now()
             ]);
 
+        $message = Message::find($message_id);
+        error_log($message);
+
+        broadcast(new MessageSent($chat_id, User::find(auth()->id()), $message));
+
+
+        // TODO don't do a full page load
         return redirect()->route('chat.show', ['chat' => $chat_id]);
     }
+
 
     /**
      * Store a newly created resource in storage.
@@ -95,7 +105,6 @@ class ChatController extends Controller
         }
 
 
-
         // get the messages with the chat_id from $chat
         $messages = Chat::query()
             ->join('messages', 'chats.id', '=', 'messages.chat_id')
@@ -105,8 +114,13 @@ class ChatController extends Controller
             ->get('*')
             ->reverse();
 
+        $index = 0;
+        foreach ($messages as $message) {
+            $message->index = $index++;
+        }
+        error_log($chat);
 
-        return view('chat.show', ['messages' => $messages]);
+        return view('chat.show', ['messages' => $messages, 'chat' => $chat]);
     }
 
     /**

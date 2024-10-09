@@ -17,11 +17,13 @@ class MessageFactory extends Factory
      */
     public function definition(): array
     {
+        $time = $this->faker->dateTimeBetween('-1 years');
         return [
             'chat_id' => $this->faker->numberBetween(1, 10),
             'sender_id' => $this->faker->numberBetween(1, 10),
             'message' => $this->faker->realText(),
-
+            'created_at' => $time,
+            'updated_at' => $time,
         ];
     }
 }
