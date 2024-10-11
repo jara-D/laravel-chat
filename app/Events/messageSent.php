@@ -11,7 +11,6 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-use function Laravel\Prompts\error;
 
 class messageSent implements ShouldBroadcast
 {
@@ -47,7 +46,7 @@ class messageSent implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new Channel('Chat'),
+            new PrivateChannel('Chat.'.$this->chat_id),
         ];
     }
 }

@@ -10,6 +10,7 @@ use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\DB;
 
 class ChatController extends Controller
@@ -69,13 +70,10 @@ class ChatController extends Controller
             ]);
 
         $message = Message::find($message_id);
-        error_log($message);
 
         broadcast(new MessageSent($chat_id, User::find(auth()->id()), $message));
 
-
-        // TODO don't do a full page load
-        return redirect()->route('chat.show', ['chat' => $chat_id]);
+        return response('', 201);
     }
 
 
