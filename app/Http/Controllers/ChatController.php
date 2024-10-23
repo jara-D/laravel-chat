@@ -10,11 +10,11 @@ use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\DB;
 
 class ChatController extends Controller
 {
+
     /**
      * Display a listing of the resource.
      */
@@ -24,11 +24,15 @@ class ChatController extends Controller
         $chats = Chat::query()
             ->join('users as user1', 'user1.id', '=', 'chats.user_id')
             ->join('users as user2', 'user2.id', '=', 'chats.contact_id')
+            // Filter the chats where the authenticated user is either the user_id or the contact_id
             ->where(function ($query) {
                 $query->where('chats.user_id', '=', auth()->id())
                     ->orWhere('chats.contact_id', '=', auth()->id());
             })
-            ->joinSub(
+            // Ensure the chat is approved
+            ->where('chats.approved', '=', true)
+            // Perform a left join with the latest message for each chat
+            ->leftJoinSub(
                 DB::table('messages')
                     ->select('messages.*')
                     ->whereIn('messages.id', function ($query) {
@@ -48,7 +52,6 @@ class ChatController extends Controller
                 'latest_messages.created_at'
             ]);
 
-
         return view('chat.index', ['chats' => $chats]);
     }
 
@@ -57,8 +60,14 @@ class ChatController extends Controller
      */
     public function create(Request $request, Chat $chat)
     {
+        if(!$chat->getAttribute('approved')) {
+            return redirect()->route('chat');
+        }
+
         $msg = $request->post('message');
         $chat_id = $chat->getAttribute('id');
+
+
 
         $message_id = Message::query()
             ->insertGetId([
@@ -91,6 +100,10 @@ class ChatController extends Controller
      */
     public function show(Chat $chat)
     {
+        if(!$chat->getAttribute('approved')) {
+            return redirect()->route('chat');
+        }
+
         $userId = $chat->getAttribute('user_id');
         $contactId = $chat->getAttribute('contact_id');
 
@@ -98,7 +111,6 @@ class ChatController extends Controller
         // authId should match either userId or contactId because that means its a participant  in the conversation
 
         if ($userId !== $authId && $contactId !== $authId) {
-            error_log("Redirecting due to mismatch.");
             return redirect()->route('chat');
         }
 
@@ -116,7 +128,6 @@ class ChatController extends Controller
         foreach ($messages as $message) {
             $message->index = $index++;
         }
-        error_log($chat);
 
         return view('chat.show', ['messages' => $messages, 'chat' => $chat]);
     }
