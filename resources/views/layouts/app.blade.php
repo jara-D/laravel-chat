@@ -34,22 +34,4 @@
 </div>
 
 </body>
-<script type="module">
-
-    // window.addEventListener('DOMContentLoaded', function () {
-    //     window.Echo.channel('system-maintenance')
-    //         .listen('SystemMaintenanceEvent', (event) => {
-    //             console.log(event);
-    //         });
-    // });
-    // console.log(window.Echo)
-    //
-    // window.Echo.channel('system-maintenance').listen('.SystemMaintenanceEvent', (e) => {
-    //         console.log("event received")
-    //         console.log(e)
-    //     }
-    // )
-    // ;
-
-</script>
 </html>
